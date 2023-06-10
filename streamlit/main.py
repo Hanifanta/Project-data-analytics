@@ -1,16 +1,23 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import seaborn as sns
 import streamlit as st
-from func import DataAnalyzer
+import urllib
+from func import DataAnalyzer, BrazilMapPlotter
 from babel.numbers import format_currency
 sns.set(style='dark')
+st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Dataset
 datetime_cols = ["order_approved_at", "order_delivered_carrier_date", "order_delivered_customer_date", "order_estimated_delivery_date", "order_purchase_timestamp", "shipping_limit_date"]
 all_df = pd.read_csv("../dataset/all_data.csv")
 all_df.sort_values(by="order_approved_at", inplace=True)
 all_df.reset_index(inplace=True)
+
+# Geolocation Dataset
+geolocation = pd.read_csv('../dataset/geolocation.csv')
+data = geolocation.drop_duplicates(subset='customer_unique_id')
 
 for col in datetime_cols:
     all_df[col] = pd.to_datetime(all_df[col])
@@ -39,6 +46,7 @@ main_df = all_df[(all_df["order_approved_at"] >= str(start_date)) &
                  (all_df["order_approved_at"] <= str(end_date))]
 
 function = DataAnalyzer(main_df)
+map_plot = BrazilMapPlotter(data, plt, mpimg, urllib, st)
 
 daily_orders_df = function.create_daily_orders_df()
 sum_spend_df = function.create_sum_spend_df()
@@ -161,7 +169,7 @@ st.pyplot(fig)
 
 # Customer Demographic
 st.subheader("Customer Demographic")
-tab1, tab2 = st.tabs(["State", "Order Status"])
+tab1, tab2, tab3 = st.tabs(["State", "Order Status", "Geolocation"])
 
 with tab1:
     most_common_state = state.customer_state.value_counts().index[0]
@@ -197,6 +205,11 @@ with tab2:
     plt.xticks(fontsize=12)
     st.pyplot(fig)
 
+with tab3:
+    map_plot.plot()
 
+    with st.expander("See Explanation"):
+        st.write('Sesuai dengan grafik yang sudah dibuat, ada lebih banyak pelanggan di bagian tenggara dan selatan. Informasi lainnya, ada lebih banyak pelanggan di kota-kota yang merupakan ibu kota (São Paulo, Rio de Janeiro, Porto Alegre, dan lainnya).')
 
+st.caption('Copyright (C) Hanif Al Irsyad 2023')
 
