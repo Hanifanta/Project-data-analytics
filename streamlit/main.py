@@ -31,7 +31,7 @@ with st.sidebar:
     st.title("Hanif Al Irsyad")
 
     # Logo Image
-    st.image("gcl.png")
+    st.image("./streamlit/gcl.png")
 
     # Date Range
     start_date, end_date = st.date_input(
